@@ -1,0 +1,84 @@
+version: "3.5"
+
+# IMPORTANT - YOU MUST CHECK the following parameters: MONGO_IP and HPC_IP (2 occurrences for the latter)
+# It is also highly recommended to set your own MONGO_INITDB_ROOT_USERNAME and MONGO_INITDB_ROOT_PASSWORD! Do this BEFORE first startup otherwise credentials will not by in sync between webapp and db containers!
+
+# You may use the following (Linux) command to start metaXplor by dynamically setting the docker0 IP address:
+# export docker0=$(ip a list docker0 | grep "inet " | sed 's/^ *//g' | awk -F'[ |/]' '{print $2}') && docker-compose up -d && sleep 2 && xdg-open http://$docker0:8090/metaXplor &> /dev/null
+
+services:
+  metaxplor-webapp:
+    depends_on:
+      - metaxplor-db # Disable this if you don't use the metaxplor-db container
+    image: guilhemsempere/metaxplor-webapp:1.0-RC2
+    environment:
+      MONGO_IP: ${docker0} # If using a real MongoDB server or a container deployed elsewhere, set its IP. Otherwise (i.e., if metaxplor-db container is enabled in this file) either (i) set to ${docker0} if an such env var contains the docker0 network IP, or (ii) manually set your host machine IP 
+      MONGO_PORT: 27027 # Must match metaxplor-db container external port. If using a real MongoDB server or a container deployed elsewhere, set its port instead.
+      HPC_IP: ${docker0} # If using a real HPC or a container deployed elsewhere, set its IP. Otherwise (i.e., if metaxplor-hpc container is enabled in this file) either (i) set to ${docker0} if an such env var contains the docker0 network IP, or (ii) manually set your host machine IP 
+      HPC_PORT: 8091 # Must match metaxplor-hpc container external port. If using a real HPC or a container deployed elsewhere, set its port instead.
+      NCBI_API_KEY: # Optional but recommended: set here an E-utilities key for more efficient webservice-based grabbing of accession / taxonomy info (see https://www.ncbi.nlm.nih.gov/books/NBK25497/)
+      ADMINISTRATOR_EMAIL: # Optional but recommended: set here the e-mail address of your metaXplor instance's administrator (to allow requesting account and database creation for example)
+      MONGO_INITDB_ROOT_USERNAME: yourMongoRootUser # You may amend this as long as it remains consistent with the one in metaxplor-db
+      MONGO_INITDB_ROOT_PASSWORD: yourMongoRootPassword # You may amend this as long as it remains consistent with the one in metaxplor-db
+
+      # You may configure up to 5 external online output tools. The property value must consist in semi-colon-separated values. The first one is the label to display for this tool,
+      # the second one is the tool URL (in which any * character will be replaced at run time with the export file URL). You may use the Galaxy configuration below as an example.
+      #ONLINE_OUTPUT_TOOL_1: My Galaxy server name;http(s)://<galaxy.server.ip>/<galaxy_webapp_name>/tool_runner?tool_id=<metaxplor_data_source_name>&URL=*
+      #ONLINE_OUTPUT_TOOL_2:
+      #ONLINE_OUTPUT_TOOL_3:
+      #ONLINE_OUTPUT_TOOL_4:
+      #ONLINE_OUTPUT_TOOL_5:
+    ports:
+      - 8090:8080 # You may amend the external port only (left hand side). By default, webapp URL will be http://${docker0}:9080/metaXplor
+    hostname: metaxplor-webapp
+    restart: always
+    volumes:
+      - type: volume
+        source: webapp-config
+        target: /usr/local/tomcat/webapp-config
+      - type: volume
+        source: metaXplor_data
+        target: /opt/metaXplor_data
+      - type: volume
+        source: refpkg
+        target: /usr/local/tomcat/webapps/metaXplor/refpkg
+
+  metaxplor-db:
+    image: mongo:4.2.11
+    ports:
+      - 27027:27017 # You may amend the external port only (left hand side), which must match the above MONGO_PORT
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: yourMongoRootUser # You may amend this as long as it remains consistent with the one in metaxplor-webapp
+      MONGO_INITDB_ROOT_PASSWORD: yourMongoRootPassword # You may amend this as long as it remains consistent with the one in metaxplor-webapp
+    restart: always
+    command: --profile 0 --slowms 60000 --storageEngine wiredTiger --wiredTigerCollectionBlockCompressor=zlib --directoryperdb --quiet  # add --bind_ip_all if you want the database to be accessible from outside the Docker network
+    volumes:
+      - type: volume
+        source: mongo
+        target: /data/db
+
+  metaxplor-hpc:
+    image: guilhemsempere/metaxplor-hpc:1.0-RELEASE
+    environment:
+      HPC_IP: ${docker0} # Must match metaxplor-webapp parameter with the same name
+      HPC_PORT: 8091 # Must match metaxplor-webapp parameter with the same name and the external port below
+    ports:
+      - 8091:8080 # You may amend the external port only (left hand side), which must match the above HPC_PORT
+      - 6444-6446:6444-6446
+    hostname: metaxplor-hpc
+    restart: always
+    volumes:
+      - type: volume
+        source: gs7k1
+        target: /gs7k1/projects/metaXplor
+      - type: volume
+        source: opal-jobs
+        target: /usr/local/tomcat/webapps/opal-jobs
+
+volumes: # If you disable some containers, also disable their volumes here
+  mongo:
+  gs7k1:
+  opal-jobs:
+  webapp-config:
+  metaXplor_data:
+  refpkg:

@@ -1,0 +1,10 @@
+# Apache Tomcat | 8.5.41
+# r-base | 3.6.3-1~stretchcran.0
+# ncbi-blast+ | 2.6.0-1
+# emboss | 6.6.0+dfsg-6
+# mafft | 7.313
+# pplacer | 1.1.alpha19
+# SGE | 8.1.9
+# opal2 | 2.5
+# Krona | 2.7
+# sqlite3 | 3.16.2-5+deb9u1

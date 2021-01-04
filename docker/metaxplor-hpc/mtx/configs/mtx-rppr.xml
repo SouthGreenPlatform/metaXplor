@@ -1,0 +1,12 @@
+<appConfig xmlns="http://nbcr.sdsc.edu/opal/types"
+           xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <metadata>
+    <usage><![CDATA[rppr]]></usage>
+  </metadata>
+  <binaryLocation>/usr/local/bioinfo/opal/scripts/mtx-rppr.sh</binaryLocation>
+  <defaultArgs></defaultArgs>
+  <jobManagerFQCN>fr.cirad.gridengine.opal.SouthGreenJobManager</jobManagerFQCN>
+  <drmaaQueue>web.q</drmaaQueue>
+  <drmaaPE>parallel_8</drmaaPE>
+  <parallel>false</parallel>
+</appConfig>

@@ -1,0 +1,37 @@
+# place where web server stores fasta and fai files
+sequenceLocation=/path/on/webserver/filesystem
+
+# place where cluster generates banks from sequences, also used by cluster for executing blasts (path is relative to the one defined in Opal scripts)
+blastDBLocation=myInstanceName/bank
+
+# base URL of NCBI Entrez E-utilities
+eutils_base_url=https://eutils.ncbi.nlm.nih.gov/entrez/eutils/
+
+# providing a E-utilities api key allows querying web-service about 3x faster
+NCBI_api_key=
+
+# you may specify via this property an email address for users to be able to contact your administrator, including for applying for account creation.
+adminEmail=
+
+# location of NCBI Taxonomy database dump
+NCBI_taxdump_zip_url=ftp://ftp.ncbi.nlm.nih.gov/pub/taxonomy/new_taxdump/new_taxdump.zip
+
+# Defines the default maximum allowed size (in megabytes) for project data file imports (capped by the maxUploadSize value set in applicationContext-MVC.xml). Default: 500Mb. NB: Does not apply to administrators (administrators are only limited by maxUploadSize for uploads and are not limited when importing via local or http files)
+maxImportSize=500
+
+# Defines the default maximum allowed size (in megabytes) for zipped ref-package files
+maxRefPkgSize=5
+
+# Defines the default maximum number of sequences allowed for running phylogenetic assignment
+maxPhyloAssignFastaSeqCount=5000
+
+# You may configure up to 5 external online output tools. The property value must consist in semi-colon-separated values. The first one is the label to display for this tool,
+# the second one is the tool URL (in which any * character will be replaced at run time with the export file URL).
+onlineOutputTool_1=
+onlineOutputTool_2=
+onlineOutputTool_3=
+onlineOutputTool_4=
+onlineOutputTool_5=
+
+# In some situations the system needs to provide externally visible file URLs for remote applications to download. In most cases it is able to figure out which base URL to use, but it might also be impossible (for example when a proxy is used to add a https layer). This parameter may then be used to enforce a base-URL. Example values: https://my.secure.server.com/metaXplor or http://my.unsecure.metaXplor.server:8090
+#enforcedWebapRootUrl = https://some.ip.or.domain:8090/metaXplor

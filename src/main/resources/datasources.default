@@ -1,0 +1,3 @@
+#keys starting with a star define public databases (their contents are viewable without login)
+#keys ending with a star indicate databases that are not listed in the menu list (may only be accessible if the frame URL and module name are known)
+metaxplor_commons=defaultHost,mtx_metaxplor_commons

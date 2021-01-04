@@ -1,0 +1,4 @@
+#!/bin/sh
+
+/usr/local/tomcat/bin/replace_var_opal_prop.sh
+exec sudo -u tomcat /usr/local/tomcat/bin/catalina.sh run

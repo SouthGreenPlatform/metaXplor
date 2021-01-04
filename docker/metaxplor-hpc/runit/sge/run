@@ -1,0 +1,5 @@
+#!/bin/sh
+if ! pgrep -x sge_qmaster >/dev/null
+then
+	exec /etc/my_init.d/01_docker_sge_init.sh
+fi

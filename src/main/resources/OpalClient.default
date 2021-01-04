@@ -1,0 +1,26 @@
+locale =
+
+# various supported BLAST types
+SERVICE_mtx-blastn_ENDPOINT = http://cluster.domain.or.ip:80/opal2/services/mtx-blastn
+SERVICE_mtx-blastp_ENDPOINT = http://cluster.domain.or.ip:80/opal2/services/mtx-blastp
+SERVICE_mtx-blastx_ENDPOINT = http://cluster.domain.or.ip:80/opal2/services/mtx-blastx
+SERVICE_mtx-tblastn_ENDPOINT = http://cluster.domain.or.ip:80/opal2/services/mtx-tblastn
+SERVICE_mtx-tblastx_ENDPOINT = http://cluster.domain.or.ip:80/opal2/services/mtx-tblastx
+
+# BLAST and DIAMOND bank creation
+SERVICE_mtx-makeblastdb_ENDPOINT = http://cluster.domain.or.ip:80/opal2/services/mtx-makeblastdb
+
+# various supported DIAMOND types
+SERVICE_mtx-diamond_blastp_ENDPOINT = http://cluster.domain.or.ip:80/opal2/services/mtx-diamond_blastp
+SERVICE_mtx-diamond_blastx_ENDPOINT = http://cluster.domain.or.ip:80/opal2/services/mtx-diamond_blastx
+
+# phylogenetic assignment workflow
+SERVICE_mtx-mafft_ENDPOINT = http://cluster.domain.or.ip:80/opal2/services/mtx-mafft 
+SERVICE_mtx-pplacer_ENDPOINT = http://cluster.domain.or.ip:80/opal2/services/mtx-pplacer
+SERVICE_mtx-guppy_ENDPOINT = http://cluster.domain.or.ip:80/opal2/services/mtx-guppy
+SERVICE_mtx-rppr_ENDPOINT = http://cluster.domain.or.ip:80/opal2/services/mtx-rppr
+SERVICE_mtx-inspectRefPkg_ENDPOINT = http://cluster.domain.or.ip:80/opal2/services/mtx-inspectRefPkg
+
+# data cleanup
+SERVICE_mtx-cleanupProjectFiles_ENDPOINT = http://cluster.domain.or.ip:80/opal2/services/mtx-cleanupProjectFiles
+SERVICE_mtx-cleanupDbFiles_ENDPOINT = http://cluster.domain.or.ip:80/opal2/services/mtx-cleanupDbFiles
