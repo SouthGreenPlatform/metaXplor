@@ -769,7 +769,7 @@ function loadResults() {
 			                    	catch (err) {
 			                    		console.log(fields[j] + ": " + err);
 			                    	}
-		                    	else if (fields[j].constructor == String)
+			                    else if (fields[j] != null && fields[j].constructor == String)
 		                    		fieldVal = fields[j];
 		                    	else if (pathToField[pathToField.length -1] == FIELDNAME_PROJECT)
 		                    		fieldVal = $("#projectList option[value=" + fields[j] + "]").text();	// display project acronym instead of ID
@@ -810,7 +810,7 @@ function loadResults() {
 			                    	catch (err) {
 			                    		console.log(fields[j] + ": " + err);
 			                    	}
-		                    	else if (fields[j].constructor == String)
+		                    	else if (fields[j] != null && fields[j].constructor == String)
 		                    		fieldVal = fields[j];
 		                    	else if (pathToField[pathToField.length -1] == FIELDNAME_PROJECT)
 		                    		fieldVal = $("#projectList option[value=" + fields[j] + "]").text();	// display project acronym instead of ID
