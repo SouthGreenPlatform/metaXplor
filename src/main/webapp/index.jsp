@@ -29,27 +29,35 @@
         <%@include file="navbar.jsp" %>
         <div class="container-fluid">
             <header class="jumbotron jumbotron-small text-center" style="padding-bottom:0">
-                <div class="row margin-top">
-                	<div class="col-md-5 col-sm-5 hero-feature">
+                <div class="row" style="margin-top:55px; height:134px;">
+                	<div class="col-md-4 col-sm-4 margin-top-sm" style='text-align:center;'>
 						<img src="img/logo_metaxplor.png" width='300' />
-		                <p>Store, share, explore, manipulate metagenomic data</p>
-		                <div><a class="btn btn-primary btn-large" href="main.jsp">Explore</a></div>
+		                <p class='nowrap'>Store, share, explore, manipulate metagenomic data</p>
 		            </div>
 		            <div class="col-md-1 col-sm-1"></div>
-		            <div class="col-md-4 col-sm-4" style='text-align:left;'>
-		            	<h3 style="margin-top:15px;">Current system figures</h3>
+		            <div class="col-md-2 col-sm-2 nowrap" style='text-align:center; margin-top:10px;'>
+			            <a href="http://www.cirad.fr/" target="_blank" class="margin-left"><img width='95' alt="CIRAD" src='img/logo_cirad.png'/></a><br/>&copy; CIRAD 2021
+		                <div style="margin-top:25px;"><a class="btn btn-primary btn-large" href="main.jsp">Explore</a></div>
+		            </div>
+		            <div class="col-md-1 col-sm-1"></div>
+		            <div class="col-md-4 col-sm-4" style='text-align:align:center;'>
+		            	<div style="font-size:22px;">Current system figures</div>
 		            	<div id="systemFigures"></div>
 		            </div>
-		            <div class="col-md-2 col-sm-2" style='text-align:right; margin-top:100px;'><a href="http://www.cirad.fr/" target="_blank" class="margin-left"><img width='95' alt="CIRAD" src='img/logo_cirad.png'/></a><br/>&copy; CIRAD 2020</div>
 	            </div>
+	            <div class="small nowrap" style="margin-top:15px; text-align:center;">
+		            <span class='bold'>Please cite metaXplor as follows:</span>
+					Guilhem Sempéré, Adrien Pétel, Magsen Abbé, Pierre Lefeuvre, Philippe Roumagnac, Frédéric Mahé, Gaël Baurens, Denis Filloux.<br/>
+					<u>metaXplor: an interactive viral and microbial metagenomic data manager, GigaScience, Volume 10, Issue 2, February 2021, giab001</u>, <a href='https://doi.org/10.1093/gigascience/giab001' target='_blank'>https://doi.org/10.1093/gigascience/giab001</a>
+				</div>
             </header>
-            <div class="row text-center">
+            <div class="row text-center margin-top-sm">
                 <div class="col-md-3 col-sm-6 hero-feature">
                     <div class="thumbnail">
                         <img src="img/krona.png" alt="" style='cursor:default;'>
                         <div class="caption">
                             <h4 class='bold'>Taxonomy</h4>
-                            <p>Explore data taxonomy.</p>
+                            <p>Explore data taxonomy</p>
                         </div>
                     </div>
                 </div>
@@ -58,7 +66,7 @@
                         <img src="img/map.png" alt="" style='cursor:default;'>
                         <div class="caption">
                             <h4 class='bold'>Localisation</h4>
-                            <p>Visualize samples on a map.</p>
+                            <p>Visualize samples on a map</p>
                         </div>
                     </div>
                 </div>
@@ -67,7 +75,7 @@
                         <img src="img/blast.png" alt="" style='cursor:default;'>
                         <div class="caption">
                             <h4 class='bold'>BLAST</h4>
-                            <p>Run BLAST on hosted sequences.</p>
+                            <p>BLAST vs hosted sequences</p>
                         </div>
                     </div>
                 </div>
@@ -76,7 +84,7 @@
                         <img src="img/phylo.png" alt="" style='cursor:default;'>
                         <div class="caption">
                             <h4 class='bold'>Phylogenetics</h4>
-                            <p>Run phylogenetic assignment.</p>
+                            <p>Run phylogenetic assignment</p>
                         </div>
                     </div>
                 </div>
@@ -97,7 +105,7 @@
 					let figures = "";
 					for (var key in jsonResult)
 						figures += "\n" + key + ": " + jsonResult[key].toLocaleString();
-                	$("#systemFigures").html("<pre style='overflow:hidden; max-width:300px;'>" + figures + "</pre>");
+                	$("#systemFigures").html("<pre style='overflow:hidden; '>" + figures + "</pre>");
                 },
                 error: function (xhr, status, error) {
                     var err = eval("(" + xhr.responseText + ")");

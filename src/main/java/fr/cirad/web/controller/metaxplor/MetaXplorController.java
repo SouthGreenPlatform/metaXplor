@@ -245,15 +245,15 @@ public class MetaXplorController implements ApplicationContextAware {
 	        	Thread t = new Thread() {
 	        		public void run() {
 	    	        	int nDbProjCount = 0;
-	    	        	nDbProjCount += mongoTemplate.count(new Query(), MetagenomicsProject.class);
-	    	        	nTotalAssignedSeqCount.addAndGet(mongoTemplate.count(new Query(), AssignedSequence.class));
+	    	        	nDbProjCount += mongoTemplate.getCollection(MongoTemplateManager.getMongoCollectionName(MetagenomicsProject.class)).estimatedDocumentCount();
+	    	        	nTotalAssignedSeqCount.addAndGet(mongoTemplate.getCollection(MongoTemplateManager.getMongoCollectionName(AssignedSequence.class)).estimatedDocumentCount());
 	    	
 	    	    		if (nDbProjCount > 0) {	// only take into account databases that have non-empty projects
 	    	    			nTotalProjCount.addAndGet(nDbProjCount);
 	    	    			nDbCount.incrementAndGet();
 	    	    		}
 
-	    	    		nTotalUnAssignedSeqCount.addAndGet(mongoTemplate.count(new Query(), Sequence.class));		
+	    	    		nTotalUnAssignedSeqCount.addAndGet(mongoTemplate.getCollection(MongoTemplateManager.getMongoCollectionName(Sequence.class)).estimatedDocumentCount());		
 	        		}
 	        	};
 	            threadsToWaitFor.add(t);
@@ -2202,6 +2202,8 @@ public class MetaXplorController implements ApplicationContextAware {
 				response.setHeader("Content-disposition", "inline; filename=" + EXPORT_FILENAME_FA + ".zip");
 	       }
 	       
+	       addHowToCiteFile(os);
+	       
 	       os.putNextEntry(new ZipEntry(EXPORT_FILENAME_FA));
 	       HashMap<Integer, String> projectAcronyms = new HashMap<>();
 	
@@ -2306,6 +2308,8 @@ public class MetaXplorController implements ApplicationContextAware {
 	             response.setHeader("Content-disposition", "inline; filename=" + EXPORT_FILENAME_SP + ".zip");
 	        }
 	        
+	        addHowToCiteFile(os);
+	        
 	        os.putNextEntry(new ZipEntry(EXPORT_FILENAME_SP));
 	        os.write(Sample.FIELDNAME_SAMPLE_CODE.getBytes("UTF-8"));
 	        for (DBField dbFIeld : fieldsToExport)
@@ -2381,6 +2385,8 @@ public class MetaXplorController implements ApplicationContextAware {
 	             response.setContentType("application/zip");
 	             response.setHeader("Content-disposition", "inline; filename=" + EXPORT_FILENAME_SQ + ".zip");
 	        }
+	        
+	        addHowToCiteFile(os);
 	
 	        os.putNextEntry(new ZipEntry(EXPORT_FILENAME_SQ));
 	        os.write(Sequence.FIELDNAME_QSEQID.getBytes());
@@ -2439,7 +2445,12 @@ public class MetaXplorController implements ApplicationContextAware {
         }
     }
     
-    private ArrayList<String> getSamplesInvolvedInResultset(List<BasicDBObject> pipeline, MongoCollection<Document> coll) {	// determine list of samples involved in a resultset
+    private void addHowToCiteFile(ZipOutputStream os) throws IOException {
+        os.putNextEntry(new ZipEntry("HOW_TO_CITE.txt"));
+        os.write("Please cite metaXplor as follows:\nGuilhem Sempéré, Adrien Pétel, Magsen Abbé, Pierre Lefeuvre, Philippe Roumagnac, Frédéric Mahé, Gaël Baurens, Denis Filloux.\nmetaXplor: an interactive viral and microbial metagenomic data manager, GigaScience, Volume 10, Issue 2, February 2021, giab001, https://doi.org/10.1093/gigascience/giab001".getBytes());
+	}
+
+	private ArrayList<String> getSamplesInvolvedInResultset(List<BasicDBObject> pipeline, MongoCollection<Document> coll) {	// determine list of samples involved in a resultset
     	ArrayList<String> samples = new ArrayList<>();
     	List<BasicDBObject> pipelineClone = new ArrayList<>();
         pipelineClone.addAll(pipeline);
@@ -2501,6 +2512,8 @@ public class MetaXplorController implements ApplicationContextAware {
 	             response.setContentType("application/zip");
 	             response.setHeader("Content-disposition", "inline; filename=" + EXPORT_FILENAME_AS + ".zip");
 	        }
+	        
+	        addHowToCiteFile(os);
 
 	        os.putNextEntry(new ZipEntry(EXPORT_FILENAME_AS));
 
@@ -2589,6 +2602,8 @@ public class MetaXplorController implements ApplicationContextAware {
 	             response.setContentType("application/zip");
 	             response.setHeader("Content-disposition", "inline; filename=" + EXPORT_FILENAME_BM + ".zip");
 	        }
+	        
+	        addHowToCiteFile(os);
 	        
 	        os.putNextEntry(new ZipEntry(EXPORT_FILENAME_BM));
 	
@@ -2698,7 +2713,7 @@ public class MetaXplorController implements ApplicationContextAware {
 	        	
 	        	seqInfo.put("id", qseqid + "|" + pjAcronym);
 	        	Object taxIdObj = doc.get("tx");	// happens to be null when provided accession could not be found using the NCBI web-service
-	        	Integer taxId = doc.get("tx") == null ? Taxon.UNIDENTIFIED_ORGANISM_TAXID : (int) (double) taxIdObj;
+	        	Integer taxId = doc.get("tx") == null ? Taxon.UNIDENTIFIED_ORGANISM_TAXID : ((Number) taxIdObj).intValue();
 	            taxIDs.add(taxId);
 	        	seqInfo.put("metadata", taxId);	// use this temporarily until it gets replaced with the taxonomy list
 	        	
@@ -2860,16 +2875,16 @@ public class MetaXplorController implements ApplicationContextAware {
         Document result = cursor.next();
         HashSet<Integer> subjectTaxa = new HashSet<>();
         for (Object assignment : (List) result.get(AssignedSequence.FIELDNAME_ASSIGNMENT)) {
-        	Double taxId = (Double) ((Document) ((Document) assignment).get(DBConstant.DOUBLE_TYPE)).get("" + DBField.taxonFieldId);
+        	Number taxId = (Number) ((Document) ((Document) assignment).get(DBConstant.DOUBLE_TYPE)).get("" + DBField.taxonFieldId);
         	if (taxId != null)
-        		subjectTaxa.add((int) (double) taxId);
+        		subjectTaxa.add(taxId.intValue());
         }
 
         HashMap<Integer, String> taxaAncestry = TaxonomyNode.getTaxaAncestry(subjectTaxa, true, false, "; ");
         for (Object assignment : (List) result.get(AssignedSequence.FIELDNAME_ASSIGNMENT)) {
-        	Double taxId = (Double) ((Document) ((Document) assignment).get(DBConstant.DOUBLE_TYPE)).get("" + DBField.taxonFieldId);
+        	Number taxId = (Number) ((Document) ((Document) assignment).get(DBConstant.DOUBLE_TYPE)).get("" + DBField.taxonFieldId);
         	if (taxId != null) {
-        		int taxIdAsInt = (int) (double) taxId;
+        		int taxIdAsInt = taxId.intValue();
         		String taxonAncestry = taxaAncestry.get(taxIdAsInt);
         		((Document) ((Document) assignment).get(DBConstant.DOUBLE_TYPE)).put("" + DBField.taxonFieldId, "[" + taxIdAsInt + "]" + (taxonAncestry != null ? " " + taxonAncestry : ""));        		
         	}
