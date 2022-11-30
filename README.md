@@ -27,9 +27,9 @@ With some basic configuration, it is also possible to deploy each container on a
 
 This repository contains the main project's source code. It uses Maven for build and dependency management, and requires the following dependencies:
 
-##### https://github.com/SouthGreenPlatform/metaXplorDB
-##### https://github.com/SouthGreenPlatform/role_manager
-##### https://github.com/SouthGreenPlatform/OpalClient
+##### https://github.com/GuilhemSempere/metaXplorDB
+##### https://github.com/GuilhemSempere/role_manager
+##### https://github.com/GuilhemSempere/OpalClient
 
 Building the web application and generating your own container images takes the following steps:
 - preferably, amending pom.xml in any project where you changed some code, to set your own version number (will avoid overwriting JARs), and forward those changes to the main project's pom.xml's dependency section
