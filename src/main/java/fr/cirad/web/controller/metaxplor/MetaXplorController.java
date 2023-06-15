@@ -87,7 +87,7 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.authority.GrantedAuthorityImpl;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
@@ -359,7 +359,7 @@ public class MetaXplorController implements ApplicationContextAware {
 					}
 					
 					Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-					boolean fAdminImporter = auth != null && auth.getAuthorities().contains(new GrantedAuthorityImpl(IRoleDefinition.ROLE_ADMIN));
+					boolean fAdminImporter = auth != null && auth.getAuthorities().contains(new SimpleGrantedAuthority(IRoleDefinition.ROLE_ADMIN));
 					if (!fAdminImporter)
 					{
 						Integer fileSize = null;
@@ -544,6 +544,18 @@ public class MetaXplorController implements ApplicationContextAware {
 	            userDao.allowManagingEntity(module, "project", savedProject.getId(), ownerName);
 	            userDao.reloadProperties();
 	            securityContext.setAuthentication(authenticationManager.authenticate(auth));
+	            
+	            
+//		        SimpleGrantedAuthority role = new SimpleGrantedAuthority(sModule + UserPermissionController.ROLE_STRING_SEPARATOR + IRoleDefinition.ROLE_DB_SUPERVISOR);
+//		        if (!owner.getAuthorities().contains(role)) {
+//		            HashSet<GrantedAuthority> authoritiesToSave = new HashSet<>();
+//		            authoritiesToSave.add(role);
+//		            for (GrantedAuthority authority : owner.getAuthorities())
+//		                authoritiesToSave.add(authority);
+//		            userDao.saveOrUpdateUser(auth.getName(), owner.getPassword(), authoritiesToSave, owner.isEnabled(), owner.getMethod());
+//		        }
+//
+//				tokenManager.reloadUserPermissions(securityContext);
 	        }
 	
 	        return result;
@@ -552,7 +564,7 @@ public class MetaXplorController implements ApplicationContextAware {
         	progress.setError(ex.getMessage());
             LOG.error("Import procedure failed", ex);
             try {
-            	moduleManager.removeManagedEntity(module, MetaXplorModuleManager.ENTITY_PROJECT, nProjectId);
+            	moduleManager.removeManagedEntity(module, MetaXplorModuleManager.ENTITY_PROJECT, Arrays.asList(nProjectId));
             }
             catch (Exception ignored) {}
         	return null;
@@ -1128,7 +1140,7 @@ public class MetaXplorController implements ApplicationContextAware {
     	MongoTemplate mongoTemplate = MongoTemplateManager.get(module);
         List<Document> allProjects = mongoTemplate.getCollection(mongoTemplate.getCollectionName(MetagenomicsProject.class)).find().projection(projection).into(new ArrayList<Document>());
 		boolean fAuthentifiedUser = authentication != null && authentication.getAuthorities() != null && !"anonymousUser".equals(authentication.getPrincipal());
-		if (fAuthentifiedUser && authentication.getAuthorities().contains(new GrantedAuthorityImpl(IRoleDefinition.ROLE_ADMIN)))
+		if (fAuthentifiedUser && authentication.getAuthorities().contains(new SimpleGrantedAuthority(IRoleDefinition.ROLE_ADMIN)))
 			return allProjects;
 		
         List<Document> allowedProjects = new ArrayList<>();
@@ -3065,7 +3077,7 @@ public class MetaXplorController implements ApplicationContextAware {
 		String maxSize = null;
 
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-		boolean fIsAdmin = auth != null && auth.getAuthorities().contains(new GrantedAuthorityImpl(IRoleDefinition.ROLE_ADMIN)); // limit only applies when capped for administrators
+		boolean fIsAdmin = auth != null && auth.getAuthorities().contains(new SimpleGrantedAuthority(IRoleDefinition.ROLE_ADMIN)); // limit only applies when capped for administrators
 		if (!fIsAdmin) {
 			maxSize = appConfig.get("maxImportSize_" + (auth == null ? "anonymousUser" : auth.getName()));
 			if (maxSize == null || !StringUtils.isNumeric(maxSize))
@@ -3085,7 +3097,7 @@ public class MetaXplorController implements ApplicationContextAware {
 		String maxSize = null;
 		
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-		boolean fIsAdmin = auth != null && auth.getAuthorities().contains(new GrantedAuthorityImpl(IRoleDefinition.ROLE_ADMIN)); // limit only applies when capped for administrators
+		boolean fIsAdmin = auth != null && auth.getAuthorities().contains(new SimpleGrantedAuthority(IRoleDefinition.ROLE_ADMIN)); // limit only applies when capped for administrators
 		if (!fIsAdmin) {
 			maxSize = appConfig.get("maxRefPkgSize_" + (auth == null ? "anonymousUser" : auth.getName()));
 			if (maxSize == null || !StringUtils.isNumeric(maxSize))
