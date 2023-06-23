@@ -57,29 +57,28 @@
                     <a href="docIndex.jsp" class="nav-link" data-toggle="tooltip" title="Consult user and administrator documentation">Documentation</a>
                 </li>
                 <li>
+                <c:set var="loggedUser" value="<%= SecurityContextHolder.getContext().getAuthentication() %>" />
                 <c:if test="${userDao.canLoggedUserWriteToSystem()}">
 	   				<a href="#" class="dropdown-toggle" data-toggle="dropdown" data-toggle="tooltip" title="Manage existing databases, import data into them, configure users' access to projects">Manage data</a>
 	   				<ul class="dropdown-menu">
-	                    <c:if test="${userDao.doesLoggedUserOwnEntities()}">
 							<li><a href="<c:url value='/permissionManagement.jsp' />" data-placement="bottom">Administer existing data<br/>and user permissions</a></li>
+	                    <c:if test="${moduleManager.canUserCreateProject(loggedUser)}">
+							<li><a href="import.jsp" id="import" onclick="window.location.href = this.href" data-placement="bottom">Import data</a></li>
 						</c:if>
-						<li><a href="import.jsp" id="import" onclick="window.location.href = this.href" data-placement="bottom">Import data</a></li>
 					</ul>
                 </c:if>
                 </li>
                 <li>
-                <c:set var="loggedUser" value="<%= SecurityContextHolder.getContext().getAuthentication().getPrincipal()%>" />
                 <c:choose>
-                    <c:when test='${loggedUser eq "anonymousUser"}'>
+                    <c:when test='${loggedUser.principal eq "anonymousUser"}'>
                         <a href="login.jsp" class="nav-link" data-toggle="tooltip" title="Authenticate into the system">Login</a>
                     </c:when>
                     <c:otherwise>
-                        <a href="<c:url value='/j_spring_security_logout' />" data-toggle="tooltip" data-placement="bottom" title="Log out ${loggedUser.username}" id="logOut">Log out</a>
+                        <a href="<c:url value='/logout' />" data-toggle="tooltip" data-placement="bottom" title="Log out ${loggedUser.principal.username}" id="logOut">Log out</a>
                     </c:otherwise>
                 </c:choose>
                 </li>
             </ul>
         </div>
-
     </div>
 </nav>

@@ -120,9 +120,9 @@ public class OpalServiceLauncher implements IOpalServiceInvoker {
 
         // where blast database files will be written 
         String bankLocation = appConfig.blastDbLocation();
-
         JobSubOutputType subOut = OpalJobInvoker.invokeNonBlocking(METAXPLOR_SERVICE_PREFIX + "makeblastdb", projId + " \"" + bankLocation + File.separator + module + "\"",
-            new URI[] { new URI(webappRootURL + MetaXplorController.PROJECT_FASTA_URL + "/" + module + "/" + DigestUtils.md5Hex(new FileInputStream(fastaFile.getAbsolutePath() + Sequence.NUCL_FAI_EXT)) + "/" + projId + Sequence.NUCL_FASTA_EXT) },
+            null,
+            new String[] { fastaFile.getAbsolutePath() },
             null,
             null);
 
@@ -170,7 +170,7 @@ public class OpalServiceLauncher implements IOpalServiceInvoker {
 
 	@Override
 	public void cleanupDbFiles(String module) throws IOException {
-        BlockingOutputType subOut = OpalJobInvoker.invokeBlocking(METAXPLOR_SERVICE_PREFIX + "cleanupDbFiles", "\"" + appConfig.blastDbLocation() + File.separator + module + "\"", new URI[0], null, null);
+        BlockingOutputType subOut = OpalJobInvoker.invokeBlocking(METAXPLOR_SERVICE_PREFIX + "cleanupDbFiles", "\"" + appConfig.blastDbLocation() + File.separator + module + "\"", null, null, null, null);
 
         int code = subOut.getStatus().getCode();
         if (code != OpalJobInvoker.STATUS_PENDING && code != OpalJobInvoker.STATUS_ACTIVE && code != OpalJobInvoker.STATUS_DONE && code != OpalJobInvoker.STATUS_STAGE_IN && code != OpalJobInvoker.STATUS_STAGE_OUT) {
@@ -183,7 +183,7 @@ public class OpalServiceLauncher implements IOpalServiceInvoker {
 
 	@Override
 	public void cleanupProjectFiles(String module, int projId) throws IOException {
-        BlockingOutputType subOut = OpalJobInvoker.invokeBlocking(METAXPLOR_SERVICE_PREFIX + "cleanupProjectFiles", "\"" +  appConfig.blastDbLocation() + File.separator + module + "\" " + projId, new URI[0], null, null);
+        BlockingOutputType subOut = OpalJobInvoker.invokeBlocking(METAXPLOR_SERVICE_PREFIX + "cleanupProjectFiles", "\"" +  appConfig.blastDbLocation() + File.separator + module + "\" " + projId, null, null, null, null);
  
         int code = subOut.getStatus().getCode();
         if (code != OpalJobInvoker.STATUS_PENDING && code != OpalJobInvoker.STATUS_ACTIVE && code != OpalJobInvoker.STATUS_DONE && code != OpalJobInvoker.STATUS_STAGE_IN && code != OpalJobInvoker.STATUS_STAGE_OUT) {
@@ -195,10 +195,8 @@ public class OpalServiceLauncher implements IOpalServiceInvoker {
 	}
 
 	@Override
-	public String inspectRefPackage(String refPkgName) throws IOException {
-		String fileURI = webappRootURL + "/" + MetaXplorController.REF_PKG_FOLDER + "/" + refPkgName;
-		
-        BlockingOutputType subOut = OpalJobInvoker.invokeBlocking(METAXPLOR_SERVICE_PREFIX + "inspectRefPkg", refPkgName, new URI[] {new URI(fileURI)}, null, null);
+	public String inspectRefPackage(String refPkgName) throws IOException {		
+        BlockingOutputType subOut = OpalJobInvoker.invokeBlocking(METAXPLOR_SERVICE_PREFIX + "inspectRefPkg", refPkgName, null, new String[] {webappRootPath + "/" + MetaXplorController.REF_PKG_FOLDER + "/" + refPkgName}, null, null);
  
         int code = subOut.getStatus().getCode();
         if (code != OpalJobInvoker.STATUS_PENDING && code != OpalJobInvoker.STATUS_ACTIVE && code != OpalJobInvoker.STATUS_DONE && code != OpalJobInvoker.STATUS_STAGE_IN && code != OpalJobInvoker.STATUS_STAGE_OUT) {
@@ -213,8 +211,6 @@ public class OpalServiceLauncher implements IOpalServiceInvoker {
 	@Override
 	public Collection<String> diamond(String sModule, String banks, String program, String sequence, String expect, String align, ProgressIndicator progress) throws IOException {
 	   	final Set<String> result = new HashSet<>();
-        // write query to fasta 
-        String queryURI = webappRootURL + "/" + MetaXplorController.TMP_OUTPUT_FOLDER + "/";
 
         // parse expect/ align to make sure correct values are used
         double evalue = Double.parseDouble(expect);
@@ -259,7 +255,7 @@ public class OpalServiceLauncher implements IOpalServiceInvoker {
                 	+ " --evalue " + expect
 	                + " --max-target-seqs " + alignement + extraParameters.toString()
 	                + " --out blast.out --outfmt 5 --query " + diamondQueryHash + ".fa",
-	                new URI[]{	new URI(queryURI + diamondQueryHash + ".fa") }, 1, null);
+	                null, new String[] { querySeqPath }, 1, null);
 
                 jobIDs[i] = subOut.getJobID();
             }
@@ -336,7 +332,6 @@ public class OpalServiceLauncher implements IOpalServiceInvoker {
 	public Collection<String> blast(String sModule, String banks, String program, String sequence, String expect, String align, ProgressIndicator progress) throws IOException {
 	   	final Set<String> result = new HashSet<>();
         // write query to fasta 
-        String queryURI = webappRootURL + "/" + MetaXplorController.TMP_OUTPUT_FOLDER + "/";
 
         // parse expect/ align to make sure correct values are used
         double evalue = Double.parseDouble(expect);
@@ -396,7 +391,7 @@ public class OpalServiceLauncher implements IOpalServiceInvoker {
                 	+ " -evalue " + expect
 	                + " -num_alignments " + alignement + extraParameters.toString()
 	                + " -out blast.out -outfmt 0 -query " + blastQueryHash + ".fa",
-	                new URI[]{	new URI(queryURI + blastQueryHash + ".fa") }, 1, null);
+	                null, new String[] { querySeqPath }, 1, null);
 
                 jobIDs[i] = subOut.getJobID();
             }
@@ -470,7 +465,8 @@ public class OpalServiceLauncher implements IOpalServiceInvoker {
 	@Override
 	public String phyloAssign(String sModule, String assignmentQueryHash, String mafftOption, ProgressIndicator progress) throws Exception {
        try {
-	        String uploadedFileLocation = webappRootURL + "/" + MetaXplorController.TMP_OUTPUT_FOLDER + "/" + assignmentQueryHash + "/";
+//	        String uploadedFileLocation = webappRootURL + "/" + MetaXplorController.TMP_OUTPUT_FOLDER + "/" + assignmentQueryHash + "/";
+	        String uploadedFolderPath = webappRootPath + MetaXplorController.TMP_OUTPUT_FOLDER + File.separator;
 
         	MongoTemplate mongoTemplate = MongoTemplateManager.get(sModule);
         	if (mongoTemplate == null)
@@ -486,7 +482,8 @@ public class OpalServiceLauncher implements IOpalServiceInvoker {
 	        	String mafftOpt = Arrays.asList("add", "addlong", "addfragments").contains(mafftOption) ? mafftOption : "addfragments";
 
 				JobSubOutputType subOut = OpalJobInvoker.invokeNonBlocking(METAXPLOR_SERVICE_PREFIX + "mafft", mafftOpt + " sequences.fasta ref.fasta aligned_sequences.fasta",
-	                	new URI[]{new URI(uploadedFileLocation + "sequences.fasta"), new URI(uploadedFileLocation + "ref.fasta")},
+						null,
+	                	new String[] { uploadedFolderPath + "/" + assignmentQueryHash + "/sequences.fasta", uploadedFolderPath + "/" + assignmentQueryHash + "/ref.fasta" },
 	                	1,
 	                	null);
 				
@@ -543,7 +540,8 @@ public class OpalServiceLauncher implements IOpalServiceInvoker {
 
                 LOG.info("Providing pplacer with " + mafftJobBaseUrl + "/1.refpkg.zip and " + mafftJobBaseUrl + "/aligned_sequences.fasta");
                 subOut = OpalJobInvoker.invokeNonBlocking(METAXPLOR_SERVICE_PREFIX + "pplacer", "-c \"1.refpkg.zip\" \"aligned_sequences.fasta\" -o " + assignmentQueryHash + JPLACE_EXT,
-                        new URI[] { new URI(uploadedFileLocation + "1.refpkg.zip"), new URI(mafftJobBaseUrl + "/aligned_sequences.fasta") },
+                        new URI[] { new URI(mafftJobBaseUrl + "/aligned_sequences.fasta") },
+                        new String[] { uploadedFolderPath + "/" + assignmentQueryHash + "/1.refpkg.zip" },
                         1,
                         null);
                 
@@ -615,12 +613,14 @@ public class OpalServiceLauncher implements IOpalServiceInvoker {
 			progress.moveToNextStep();
 
 	        BlockingOutputType subOut = OpalJobInvoker.invokeBlocking(METAXPLOR_SERVICE_PREFIX + "guppy", "\"1.refpkg.zip\" " + jPlaceUrl.substring(jPlaceUrl.lastIndexOf('/') + 1),
-	                	new URI[] {new URI(jPlaceUrl), new URI(uploadedFileLocation + "1.refpkg.zip")},
+	                	new URI[] {new URI(jPlaceUrl)},
+	                	new String[] { uploadedFolderPath + "/" + assignmentQueryHash + "/1.refpkg.zip" },
 	                	1,
 	                	null);
 	        
 //		        BlockingOutputType subOut = OpalJobInvoker.invokeBlocking(METAXPLOR_SERVICE_PREFIX + "guppy", "tog " + jPlaceUrl.substring(jPlaceUrl.lastIndexOf('/') + 1) + "--xml",
-//	                	new URI[] {/*new URI(jPlaceUrl), new URI(uploadedFileLocation + "1.refpkg.zip")*/},
+//			        	new URI[] {new URI(jPlaceUrl)},
+//			        	new String[] { uploadedFolderPath + "/" + assignmentQueryHash + "/1.refpkg.zip" },
 //	                	1,
 //	                	null);
 	        

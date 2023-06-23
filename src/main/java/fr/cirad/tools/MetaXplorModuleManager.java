@@ -53,6 +53,7 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -80,7 +81,6 @@ import fr.cirad.metaxplor.model.DatabaseInformation;
 import fr.cirad.metaxplor.model.MetagenomicsProject;
 import fr.cirad.metaxplor.model.Sample;
 import fr.cirad.metaxplor.model.Sequence;
-
 import fr.cirad.security.ReloadableInMemoryDaoImpl;
 
 import fr.cirad.security.base.IRoleDefinition;
@@ -92,7 +92,7 @@ import fr.cirad.tools.opal.OpalServiceLauncher;
  * @author sempere
  *
  */
-@Component
+@Component("moduleManager")
 public class MetaXplorModuleManager implements IModuleManager {
 
 	static public final String ENTITY_PROJECT = "project";
@@ -306,7 +306,13 @@ public class MetaXplorModuleManager implements IModuleManager {
 
     @Override
     public boolean doesEntityExistInModule(String sModule, String sEntityType, Comparable entityId) {
-        return MongoTemplateManager.doesModuleContainProject(sModule, Integer.parseInt(entityId.toString()));
+        if (ENTITY_PROJECT.equals(sEntityType)) {
+            final int nProjectId = Integer.parseInt(entityId.toString());
+            return MongoTemplateManager.get(sModule).count(new Query(Criteria.where("_id").is(nProjectId)), MetagenomicsProject.class) == 1;
+        } else {
+            LOG.error("Not managing entities of type " + sEntityType);
+            return false;
+        }
     }
 
     @Override
@@ -326,55 +332,59 @@ public class MetaXplorModuleManager implements IModuleManager {
      */
     public Collection<String> listReadableDBs(Authentication authentication, String selectedModule)
     {
-    	Map<String, Map<String, Map<String, Collection<Comparable>>>> customRolesByModuleAndEntityType = userDao.getCustomRolesByModuleAndEntityType(authentication.getAuthorities());
-    	Map<String, Map<String, Collection<Comparable>>> managedEntitiesByModuleAndType = userDao.getManagedEntitiesByModuleAndType(authentication.getAuthorities());
-		Collection<String> modules = MongoTemplateManager.getAvailableModules(), authorizedModules = new ArrayList<String>();
-		boolean fAuthentifiedUser = authentication != null && authentication.getAuthorities() != null && !"anonymousUser".equals(authentication.getPrincipal());
-		boolean fAdminUser = fAuthentifiedUser && authentication.getAuthorities().contains(new SimpleGrantedAuthority(IRoleDefinition.ROLE_ADMIN));
-
-		for (String module : modules)
-		{
-			boolean fHiddenModule = MongoTemplateManager.isModuleHidden(module);
-			boolean fPublicModule = MongoTemplateManager.isModulePublic(module);
-			boolean fAuthorizedUser = fAuthentifiedUser && (customRolesByModuleAndEntityType.get(module) != null || managedEntitiesByModuleAndType.get(module) != null);
-			if (fAdminUser || ((!fHiddenModule || module.equals(selectedModule)) && (fAuthorizedUser || fPublicModule || (fAuthentifiedUser && MongoTemplateManager.get(module).count(new Query(Criteria.where(MetagenomicsProject.FIELDNAME_PUBLIC).is(true)), MetagenomicsProject.class) > 0))))
-				authorizedModules.add(module);
-		}
+    	Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
+        boolean fAdminUser = authorities != null && authorities.contains(new SimpleGrantedAuthority(IRoleDefinition.ROLE_ADMIN));
+        Map<String, Map<String, Map<String, Collection<Comparable>>>> customRolesByModuleAndEntityType = userDao.getCustomRolesByModuleAndEntityType(authorities);
+        Map<String, Map<String, Collection<Comparable>>> managedEntitiesByModuleAndType = userDao.getManagedEntitiesByModuleAndType(authorities);
+        Collection<String> modules = MongoTemplateManager.getAvailableModules(), authorizedModules = new ArrayList<String>();
+        HashSet<String> supervisedModules = userDao.getSupervisedModules(authorities);
+        for (String module : modules)
+        {
+            boolean fHiddenModule = MongoTemplateManager.isModuleHidden(module);
+            boolean fPublicModule = MongoTemplateManager.isModulePublic(module);
+            boolean fIsSupervisor = !fAdminUser && supervisedModules.contains(module);
+            boolean fAuthorizedUser = authorities != null && (fIsSupervisor || customRolesByModuleAndEntityType.get(module) != null || managedEntitiesByModuleAndType.get(module) != null);
+            if (fAdminUser || fIsSupervisor || (!fHiddenModule && (fAuthorizedUser || fPublicModule)))
+                authorizedModules.add(module);
+        }
         return authorizedModules;
     }
 
     /**
-     * return writable modules a given Authentication instance
+     * return writable modules for user
      *
-     * @return List<String> readable modules
+     * @return List<String> writable modules
      */
     public Collection<String> listWritableDBs(Authentication authentication) {
-		Collection<String> modules = MongoTemplateManager.getAvailableModules(), authorizedModules = new ArrayList<String>();
-		Map<String, Collection<String>> writableEntityTypesByModule = userDao.getWritableEntityTypesByModule(authentication.getAuthorities());
-		Map<String, Map<String, Collection<Comparable>>> managedEntitiesByModuleAndType = userDao.getManagedEntitiesByModuleAndType(authentication.getAuthorities());
-		for (String module : modules)
-		{
-			boolean fAuthentifiedUser = authentication != null && authentication.getAuthorities() != null && !"anonymousUser".equals(authentication.getPrincipal());
-			boolean fAdminUser = fAuthentifiedUser && authentication.getAuthorities().contains(new SimpleGrantedAuthority(IRoleDefinition.ROLE_ADMIN));
-			Collection<String> writableEntityTypes = writableEntityTypesByModule.get(module);
-			boolean fAuthorizedUser = fAuthentifiedUser && ((writableEntityTypes != null && writableEntityTypes.contains(ENTITY_PROJECT)) || managedEntitiesByModuleAndType.get(module) != null);
-			if (fAdminUser || (fAuthorizedUser))
+    	Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
+        if (authorities != null && authorities.contains(new SimpleGrantedAuthority(IRoleDefinition.ROLE_ADMIN)))
+            return MongoTemplateManager.getAvailableModules();
+        
+		HashSet<String> authorizedModules = userDao.getSupervisedModules(authorities);
+		Map<String, Map<String, Collection<Comparable>>> managedEntitiesByModuleAndType = userDao.getManagedEntitiesByModuleAndType(authorities);
+		for (String module : managedEntitiesByModuleAndType.keySet()) {
+			Collection<Comparable> managedProjects = managedEntitiesByModuleAndType.get(module).get(ENTITY_PROJECT);
+			if (managedProjects != null && !managedProjects.isEmpty())
 				authorizedModules.add(module);
 		}
         return authorizedModules;
     }
     
-    public boolean canUserCreateProjectInDB(Authentication authentication, String module) 
-    {
-    	if (authentication == null)
+    public boolean canUserCreateProject(Authentication authentication) {
+       	return canUserCreateProjectInDB(authentication, null);
+    }
+    
+    public boolean canUserCreateProjectInDB(Authentication authentication, String module) {
+    	Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
+    	if (authorities == null)
     		return false;
 
-		boolean fAuthentifiedUser = authentication != null && authentication.getAuthorities() != null && !"anonymousUser".equals(authentication.getPrincipal());
-		boolean fAdminUser = fAuthentifiedUser && authentication.getAuthorities().contains(new SimpleGrantedAuthority(IRoleDefinition.ROLE_ADMIN));
-		Collection<String> writableEntityTypes = userDao.getWritableEntityTypesByModule(authentication.getAuthorities()).get(module);
-        if (fAdminUser || (fAuthentifiedUser && ((writableEntityTypes != null && writableEntityTypes.contains(ENTITY_PROJECT)))))
+        boolean fAdminUser = authorities.contains(new SimpleGrantedAuthority(IRoleDefinition.ROLE_ADMIN));
+        if (fAdminUser)
             return true;
-        return false;
+
+        HashSet<String> supervisedModules = userDao.getSupervisedModules(authorities);
+       	return module == null ? !supervisedModules.isEmpty() : supervisedModules.contains(module);
     }
 
 	public boolean canUserWriteToProject(Authentication authentication, String sModule, int projectId)
@@ -767,8 +777,10 @@ public class MetaXplorModuleManager implements IModuleManager {
 				throw new Exception("You are not allowed to modify this project");
 
 			MongoTemplate mongoTemplate = MongoTemplateManager.get(sModule);
-			if (mongoTemplate.updateFirst(new Query(Criteria.where("_id").is(projectIdToModify)), new Update().set(MetagenomicsProject.FIELDNAME_DESCRIPTION, desc), MetagenomicsProject.class).getModifiedCount() > 0)
+			if (mongoTemplate.updateFirst(new Query(Criteria.where("_id").is(projectIdToModify)), new Update().set(MetagenomicsProject.FIELDNAME_DESCRIPTION, desc), MetagenomicsProject.class).getModifiedCount() > 0) {
+				MongoTemplateManager.updateDatabaseLastModification(sModule);
 				LOG.debug("Updated description for project " + projectIdToModify + " from module " + sModule);
+			}
 
 			return true;
 		}

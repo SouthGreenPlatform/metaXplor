@@ -13,7 +13,7 @@
  * See <http://www.gnu.org/licenses/agpl.html> for details about GNU General
  * Public License V3.
 --%>
-<%@page contentType="text/html" pageEncoding="UTF-8" import="fr.cirad.web.controller.metaxplor.MetaXplorController" %>
+<%@page contentType="text/html" pageEncoding="UTF-8" import="fr.cirad.web.controller.metaxplor.MetaXplorController,org.springframework.security.web.WebAttributes" %>
 <%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 <%@taglib prefix="fmt" uri="http://java.sun.com/jstl/fmt" %> 
@@ -22,6 +22,7 @@
 <html>
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<meta name="google" content="notranslate">
         <link rel="shortcut icon" href="img/favicon.png" type="image/x-icon" />
         <title>Login</title>
         <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
@@ -45,6 +46,9 @@
         </script>
     </head>
     <body>
+<%
+	Exception lastException = (Exception) session.getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
+%>
         <div class ="container">
             <div class="row margin-top">
                 <div class="col-md-4"></div>
@@ -57,14 +61,14 @@
                         		LOGIN FORM
                         	</div>
                             <form name="f" action='j_spring_security_check' method='POST' id="form-login">
-                                <input type="text" name="j_username" id="username" placeholder="Username" required="required"<c:if test="${param.auth eq 'failure'}"> value="${SPRING_SECURITY_LAST_EXCEPTION.authentication.principal}"</c:if> />
-                                <input type="password" name="j_password" id="password" placeholder="Password" required="required" />
+                                <input type="text" name="username" id="username" placeholder="Username" required="required" />
+                                <input type="password" name="password" id="password" placeholder="Password" required="required" />
                                 <button type="submit" name="connexion" class="btn btn-primary btn-block btn-large">Log  me in</button> 
                             </form>
 							<div class="text-red margin-top-md">
 								&nbsp;
 								<c:if test="${param.auth eq 'failure'}">
-									<div id="loginErrorMsg" style="background-color:white; padding:0 10px; margin:5px 5px;"><c:out value="${SPRING_SECURITY_LAST_EXCEPTION.message}" /></div>
+									<div id="loginErrorMsg" style="background-color:white; padding:0 10px; margin:5px 5px;"><%= lastException != null && lastException instanceof org.springframework.security.authentication.BadCredentialsException ? "&nbsp;&nbsp;&nbsp;<span style='color:#F2961B;'>Authentication failed!</span>" : "" %>&nbsp;</div>
 							        <script type="text/javascript">
 	                                setTimeout(function () {
 	                                    $("div#loginErrorMsg").fadeTo(1000, 0);
@@ -84,4 +88,8 @@
         </div>
         <script type="text/javascript" src="js/commons.js"></script>
     </body>
+<%
+	session.setAttribute(WebAttributes.AUTHENTICATION_EXCEPTION, null);
+%>
+
 </html>

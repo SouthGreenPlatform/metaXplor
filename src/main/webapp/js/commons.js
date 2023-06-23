@@ -1,9 +1,3 @@
-
-if ((location.href.endsWith("blast.jsp") || location.href.endsWith("pplacer.jsp") || sessionStorage.getItem("warnedAboutLocalhost") != "true") && (location.hostname == "localhost" || location.hostname == "127.0.0.1")) {
-	alert("Using " + window.location.hostname + " is not recommended because it leads to communication failure with job scheduler.");
-	sessionStorage.setItem("warnedAboutLocalhost", "true");
-}
-
 let StringBuffer = function() {
     this.buffer = new Array();
 };

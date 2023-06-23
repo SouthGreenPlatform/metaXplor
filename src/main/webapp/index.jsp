@@ -13,12 +13,18 @@
  * See <http://www.gnu.org/licenses/agpl.html> for details about GNU General
  * Public License V3.
 --%>
+<%
+String sModule = request.getParameter("module");
+if (sModule != null && !sModule.trim().isEmpty())
+	response.sendRedirect("main.jsp?module=" + sModule);
+%>
 <!DOCTYPE html>
 <%@page contentType="text/html" pageEncoding="UTF-8" import="fr.cirad.web.controller.metaxplor.MetaXplorController, fr.cirad.metaxplor.model.MetagenomicsProject"%>
 <%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <html>
     <head>
         <meta charset="utf-8"/>
+        <meta name="google" content="notranslate">
         <title>metaXplor</title>
         <link rel="shortcut icon" href="img/favicon.png" type="image/x-icon" />
         <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">

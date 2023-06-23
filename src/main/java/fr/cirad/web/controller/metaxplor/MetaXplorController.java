@@ -537,27 +537,8 @@ public class MetaXplorController implements ApplicationContextAware {
 	                progress,
 	                access);
 
-	        // set the user as owner of this project ( -> allow him to give read/write permission to other users ) 
-	        MetagenomicsProject savedProject = mongoTemplate.findOne(new Query(Criteria.where(MetagenomicsProject.FIELDNAME_ACRONYM).is(code)), MetagenomicsProject.class);
-	        if (savedProject != null) {
-	            String ownerName = request.getUserPrincipal().getName();
-	            userDao.allowManagingEntity(module, "project", savedProject.getId(), ownerName);
-	            userDao.reloadProperties();
-	            securityContext.setAuthentication(authenticationManager.authenticate(auth));
-	            
-	            
-//		        SimpleGrantedAuthority role = new SimpleGrantedAuthority(sModule + UserPermissionController.ROLE_STRING_SEPARATOR + IRoleDefinition.ROLE_DB_SUPERVISOR);
-//		        if (!owner.getAuthorities().contains(role)) {
-//		            HashSet<GrantedAuthority> authoritiesToSave = new HashSet<>();
-//		            authoritiesToSave.add(role);
-//		            for (GrantedAuthority authority : owner.getAuthorities())
-//		                authoritiesToSave.add(authority);
-//		            userDao.saveOrUpdateUser(auth.getName(), owner.getPassword(), authoritiesToSave, owner.isEnabled(), owner.getMethod());
-//		        }
-//
-//				tokenManager.reloadUserPermissions(securityContext);
-	        }
-	
+	        // we don't bother granting manager role on this project to importing user because only DB-supervisors and admins can import project data
+
 	        return result;
     	}
     	catch (Exception ex) {
