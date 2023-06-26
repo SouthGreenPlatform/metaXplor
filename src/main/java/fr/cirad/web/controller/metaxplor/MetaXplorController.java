@@ -124,7 +124,6 @@ import fr.cirad.metaxplor.model.Sequence;
 import fr.cirad.metaxplor.model.Sequence.SequenceId;
 import fr.cirad.metaxplor.model.Taxon;
 import fr.cirad.metaxplor.model.TaxonomyNode;
-import fr.cirad.security.ReloadableInMemoryDaoImpl;
 import fr.cirad.security.base.IRoleDefinition;
 import fr.cirad.tools.AppConfig;
 import fr.cirad.tools.Constant;
@@ -149,8 +148,6 @@ public class MetaXplorController implements ApplicationContextAware {
     @Autowired private MetaXplorModuleManager moduleManager;
 
     @Autowired private MtxImport mtxImport;
-    
-    @Autowired private ReloadableInMemoryDaoImpl userDao;
     
     @Autowired private CommonsMultipartResolver commonsMultipartResolver;
 
@@ -901,6 +898,7 @@ public class MetaXplorController implements ApplicationContextAware {
 
     	PhylogeneticAssignment clusterPplacer = mongoTemplate.findOne(new Query(Criteria.where(PhylogeneticAssignment.FIELDNAME_JOB_IDS).is(jobId)), PhylogeneticAssignment.class);
     	if (clusterPplacer == null) {
+    		LOG.debug("Unable to find Guppy fat result " + jobId + " in database " + sModule);
     		build404Response(resp);
     		return null;
     	}
