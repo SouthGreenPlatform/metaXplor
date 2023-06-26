@@ -17,7 +17,6 @@ package fr.cirad.tools.opal;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -44,7 +43,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.axis.types.URI;
-import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -57,13 +55,11 @@ import fr.cirad.gridengine.opalclient.OpalJobInvoker;
 import fr.cirad.metaxplor.jobs.base.IOpalServiceInvoker;
 import fr.cirad.metaxplor.model.Blast;
 import fr.cirad.metaxplor.model.PhylogeneticAssignment;
-import fr.cirad.metaxplor.model.Sequence;
 import fr.cirad.tools.AppConfig;
 import fr.cirad.tools.Constant;
 import fr.cirad.tools.Helper;
 import fr.cirad.tools.ProgressIndicator;
 import fr.cirad.tools.mongo.MongoTemplateManager;
-import fr.cirad.web.controller.BackOfficeController;
 import fr.cirad.web.controller.metaxplor.MetaXplorController;
 
 @Component
@@ -91,17 +87,9 @@ public class OpalServiceLauncher implements IOpalServiceInvoker {
     public static final String JPLACE_EXT = ".jplace";
 
 	private String webappRootPath;
-	private String webappRootURL;
 
 	public OpalServiceLauncher(HttpServletRequest request) throws UnknownHostException, SocketException {
 		webappRootPath = request.getServletContext().getRealPath(MetaXplorController.PATH_SEPARATOR);
-		
-		webappRootURL = appConfig.get("enforcedWebapRootUrl");
-		if (webappRootURL == null) {
-			String computedBaseURL = BackOfficeController.determinePublicHostName(request);
-			if (computedBaseURL != null)
-				webappRootURL = computedBaseURL + request.getContextPath();
-		}
 	}
 
 	public OpalServiceLauncher() {}
@@ -113,7 +101,7 @@ public class OpalServiceLauncher implements IOpalServiceInvoker {
 
 	@Override
 	public String makeBlastDb(String module, int projId, File fastaFile) throws Exception {
-		if (webappRootURL == null)
+		if (webappRootPath == null)
 			throw new Exception("The makeBlastDb method requires providing the constructor with a HttpServletRequest object!");
 
     	SimpleDateFormat timeSDF = new SimpleDateFormat(Constant.DATE_FORMAT_HHMMSS);
