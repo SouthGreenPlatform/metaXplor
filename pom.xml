@@ -254,7 +254,7 @@
 						<manifestEntries>
 							<Implementation-version>${project.version}</Implementation-version>
 						</manifestEntries>
-						<manifestFile>src/main/webapp/META-INF/MANIFEST.MF</manifestFile>
+						<manifestFile>src/main/resources/MANIFEST.MF</manifestFile>
 					</archive>
 				</configuration>
 			</plugin>
