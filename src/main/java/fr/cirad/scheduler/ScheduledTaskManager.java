@@ -77,16 +77,8 @@ public class ScheduledTaskManager {
     
     private OpalServiceLauncher opalServiceLauncher = null;
     private String refPkgFolderPath = null;
-    private boolean fLocalhostInfoLogDisplayed = false;
 
     public void enableRefPkgInspection(HttpServletRequest request) throws UnknownHostException, SocketException {
-    	if ("localhost".equals(request.getServerName()) || "127.0.0.1".equals(request.getServerName())) {
-    		if (!fLocalhostInfoLogDisplayed) {
-	    		LOG.info("enableRefPkgInspection skipped because host address is " + request.getServerName());
-	    		fLocalhostInfoLogDisplayed = true;
-    		}
-    		return;
-    	}
 		opalServiceLauncher = new OpalServiceLauncher(request);
 		refPkgFolderPath = request.getRealPath(MetaXplorController.REF_PKG_FOLDER);
         ScheduledExecutorService ses = Executors.newScheduledThreadPool(3);

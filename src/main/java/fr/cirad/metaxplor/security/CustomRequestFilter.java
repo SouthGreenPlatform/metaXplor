@@ -35,7 +35,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.authority.GrantedAuthorityImpl;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
@@ -75,7 +75,7 @@ public class CustomRequestFilter extends GenericFilterBean {
     	String sModule = request.getParameter("module"), projects = request.getParameter("projects");
     	if (sModule != null && !sModule.isEmpty() && (projects == null || projects.isEmpty())) {	// make sure user only sees projects he's allowed to
 	    	Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-    		boolean fIsAdmin = authentication.getAuthorities() != null && authentication.getAuthorities().contains(new GrantedAuthorityImpl(IRoleDefinition.ROLE_ADMIN));
+    		boolean fIsAdmin = authentication.getAuthorities() != null && authentication.getAuthorities().contains(new SimpleGrantedAuthority(IRoleDefinition.ROLE_ADMIN));
 			HashSet<Integer> allowedProjects = new HashSet<>(MongoTemplateManager.get(sModule).findDistinct(fIsAdmin ? new Query() /* administrators have access to all projects */ : new Query(Criteria.where(MetagenomicsProject.FIELDNAME_PUBLIC).is(true)), "_id", MetagenomicsProject.class, Integer.class));
 			if (!fIsAdmin) { // look for specific user permissions
 				Map<String, Map<String, Collection<Comparable>>> customRolesByEntityType = userDao.getCustomRolesByModuleAndEntityType(authentication.getAuthorities()).get(sModule);
@@ -104,7 +104,7 @@ public class CustomRequestFilter extends GenericFilterBean {
     	else {
     		if ("/index.jsp".equals(((HttpServletRequest) request).getServletPath()) && "success".equals(request.getParameter("login"))) {
 	    		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-	    		boolean fIsAdmin = authentication.getAuthorities() != null && authentication.getAuthorities().contains(new GrantedAuthorityImpl(IRoleDefinition.ROLE_ADMIN));
+	    		boolean fIsAdmin = authentication.getAuthorities() != null && authentication.getAuthorities().contains(new SimpleGrantedAuthority(IRoleDefinition.ROLE_ADMIN));
 	    		if (fIsAdmin && "metadmin".equals(authentication.getName()) && "nimda".equals(authentication.getCredentials()))
 	    			request = new RequestWrapper((HttpServletRequest) request, Collections.singletonMap("warnAboutDefaultPassword", new String[]{"true"}));
         	}

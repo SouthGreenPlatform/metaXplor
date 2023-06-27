@@ -16,7 +16,9 @@
 package fr.cirad.metaxplor.security;
 
 import java.util.Collection;
+import java.util.List;
 
+import org.springframework.security.access.AccessDecisionVoter;
 import org.springframework.security.access.ConfigAttribute;
 import org.springframework.security.access.vote.AffirmativeBased;
 import org.springframework.security.core.Authentication;
@@ -25,6 +27,10 @@ import org.springframework.security.web.FilterInvocation;
 import fr.cirad.tools.mongo.MongoTemplateManager;
 
 public class MetaXplorAccessDecisionManager extends AffirmativeBased {
+
+    public MetaXplorAccessDecisionManager(List<AccessDecisionVoter<?>> decisionVoters) {
+        super(decisionVoters);
+    }
 
     @Override
     public void decide(Authentication authentication, Object object, Collection<ConfigAttribute> configAttributes) {

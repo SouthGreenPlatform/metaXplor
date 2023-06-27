@@ -299,7 +299,8 @@
 		              if (jsonRes != null) {
 		              	if (jsonRes.complete == true) {
 		              		clearInterval(currentProgressCheckProcess);
-		    	 			displayResults(placementResultUrl);
+				        	$("div#pageSpinner").html("<button style='color:darkgreen;' onclick=\"window.open('pplacerResult.jsp?module=' + $('#module').val() + '&processId=' + $('#processId').val()); location.reload();\">Click to view result tree</button>");
+					        $('#asyncProgressLink').hide();
 		              	}
 		              	else {
 		                      if (jsonRes.error == null) {
@@ -335,11 +336,6 @@
         function enable(doEnable) {
             $('#textArea').prop('disabled', doEnable);
             $('#package').prop('disabled', doEnable);
-        }
-
-        function displayResults(baseResultUrl) {
-	        window.open('pplacerResult.jsp?module=' + $('#module').val() + '&processId=' + $('#processId').val());
-            location.reload();
         }
         </script>
         <script type="text/javascript" src="js/commons.js"></script>

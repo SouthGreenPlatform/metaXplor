@@ -5,7 +5,7 @@
 # 	- mongoDB must be launched before (metaxplor-db)
 #-------------------------------
 
-FROM tomcat:8.5-alpine
+FROM tomcat:9.0.58-jdk17-openjdk-slim
 
 EXPOSE 8080
 ARG WEBAPP_IP

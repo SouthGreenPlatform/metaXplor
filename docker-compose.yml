@@ -10,7 +10,7 @@ services:
   metaxplor-webapp:
     depends_on:
       - metaxplor-db # Disable this if you don't use the metaxplor-db container
-    image: guilhemsempere/metaxplor-webapp:1.0-RELEASE
+    image: guilhemsempere/metaxplor-webapp:1.1-RELEASE
     environment:
       MONGO_IP: ${docker0} # If using a real MongoDB server or a container deployed elsewhere, set its IP. Otherwise (i.e., if metaxplor-db container is enabled in this file) either (i) set to ${docker0} if an such env var contains the docker0 network IP, or (ii) manually set your host machine IP 
       MONGO_PORT: 27027 # Must match metaxplor-db container external port. If using a real MongoDB server or a container deployed elsewhere, set its port instead.
@@ -44,7 +44,7 @@ services:
         target: /usr/local/tomcat/webapps/metaXplor/refpkg
 
   metaxplor-db:
-    image: mongo:4.2.11
+    image: mongo:4.2.24
     ports:
       - 27027:27017 # You may amend the external port only (left hand side), which must match the above MONGO_PORT
     environment:
@@ -58,7 +58,7 @@ services:
         target: /data/db
 
   metaxplor-hpc:
-    image: guilhemsempere/metaxplor-hpc:1.0-RELEASE
+    image: guilhemsempere/metaxplor-hpc:1.1-RELEASE
     environment:
       HPC_IP: ${docker0} # Must match metaxplor-webapp parameter with the same name
       HPC_PORT: 8091 # Must match metaxplor-webapp parameter with the same name and the external port below
