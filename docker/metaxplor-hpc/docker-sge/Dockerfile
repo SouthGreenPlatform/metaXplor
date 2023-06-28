@@ -51,9 +51,9 @@ RUN cd $SGE_ROOT && ./inst_sge -m -x -s -auto $HOME/sge_auto_install.conf \
 && /etc/init.d/sgeexecd.docker-sge restart \
 && sed -i "s/HOSTNAME/`hostname`/" $HOME/sge_exec_host.conf \
 && sed -i "s/HOSTNAME/`hostname`/" $HOME/sge_hostgrp.conf \
-&& /opt/sge/bin/lx-amd64/qconf -au sgeuser arusers \
-&& /opt/sge/bin/lx-amd64/qconf -Me $HOME/sge_exec_host.conf \
-&& /opt/sge/bin/lx-amd64/qconf -Aq $HOME/sge_queue.conf
+&& $SGE_ROOT/bin/lx-amd64/qconf -au sgeuser arusers \
+&& $SGE_ROOT/bin/lx-amd64/qconf -Me $HOME/sge_exec_host.conf \
+&& $SGE_ROOT/bin/lx-amd64/qconf -Aq $HOME/sge_queue.conf
 
 # clean up
 RUN rm /root/*.deb
