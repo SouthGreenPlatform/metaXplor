@@ -40,6 +40,8 @@ COPY opal2 /usr/local/tomcat/webapps/opal2
 
 COPY mtx/configs /usr/local/bioinfo/opal/configs
 COPY mtx/scripts /usr/local/bioinfo/opal/scripts
+COPY mafft.zip /usr/local/bioinfo/mafft.zip
+COPY Krona.zip /usr/local/bioinfo/Krona.zip
 COPY replace_var_opal_prop.sh /usr/local/tomcat/bin/replace_var_opal_prop.sh
 COPY setenv.sh /usr/local/tomcat/bin/setenv.sh
 
@@ -116,24 +118,18 @@ RUN apt-get install --no-install-recommends -y wget
 RUN apt-get install --no-install-recommends -y unzip
 RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-RUN cd /usr/local/bioinfo
-
-RUN mkdir diamond && wget http://github.com/bbuchfink/diamond/releases/download/v2.0.4/diamond-linux64.tar.gz && tar xzf diamond-linux64.tar.gz -C diamond && rm -f diamond-linux64.tar.gz && ln -s /usr/local/bioinfo/diamond/diamond /usr/local/bin/diamond
-
-COPY mafft.zip ./mafft.zip
-RUN unzip mafft.zip && rm -f mafft.zip && ln -s /usr/local/bioinfo/mafft/7.313/bin/mafft /usr/local/bin/mafft
-
-COPY Krona.zip ./Krona.zip
-RUN unzip Krona.zip && rm -f Krona.zip && ln -s /usr/local/bioinfo/Krona/2.7/scripts/ImportText.pl /usr/local/bin/ImportText.pl
-
-RUN wget https://github.com/matsen/pplacer/releases/download/v1.1.alpha19/pplacer-linux-v1.1.alpha19.zip
-RUN unzip pplacer-linux-v1.1.alpha19.zip
-RUN mkdir -p pplacer/1.1.alpha19
-RUN mv pplacer-Linux-v1.1.alpha19/* pplacer/1.1.alpha19/
-RUN rm -rf pplacer-*
-RUN ln -s /usr/local/bioinfo/pplacer/1.1.alpha19/pplacer /usr/local/bin/pplacer
-RUN ln -s /usr/local/bioinfo/pplacer/1.1.alpha19/guppy /usr/local/bin/guppy
-RUN ln -s /usr/local/bioinfo/pplacer/1.1.alpha19/rppr /usr/local/bin/rppr
+RUN cd /usr/local/bioinfo \
+&& mkdir diamond && wget http://github.com/bbuchfink/diamond/releases/download/v2.0.4/diamond-linux64.tar.gz && tar xzf diamond-linux64.tar.gz -C diamond && rm -f diamond-linux64.tar.gz && ln -s /usr/local/bioinfo/diamond/diamond /usr/local/bin/diamond \
+&& unzip mafft.zip && rm -f mafft.zip && ln -s /usr/local/bioinfo/mafft/7.313/bin/mafft /usr/local/bin/mafft \
+&& unzip Krona.zip && rm -f Krona.zip && ln -s /usr/local/bioinfo/Krona/2.7/scripts/ImportText.pl /usr/local/bin/ImportText.pl \
+&& wget https://github.com/matsen/pplacer/releases/download/v1.1.alpha19/pplacer-linux-v1.1.alpha19.zip \
+&& unzip pplacer-linux-v1.1.alpha19.zip \
+&& mkdir -p pplacer/1.1.alpha19 \
+&& mv pplacer-Linux-v1.1.alpha19/* pplacer/1.1.alpha19/ \
+&& rm -rf pplacer-* \
+&& ln -s /usr/local/bioinfo/pplacer/1.1.alpha19/pplacer /usr/local/bin/pplacer \
+&& ln -s /usr/local/bioinfo/pplacer/1.1.alpha19/guppy /usr/local/bin/guppy \
+&& ln -s /usr/local/bioinfo/pplacer/1.1.alpha19/rppr /usr/local/bin/rppr
 
 # turn off password requirement for sudo groups users
 RUN cd /usr/local/tomcat && sed -i "s/^\%sudo\tALL=(ALL:ALL)\sALL/%sudo ALL=(ALL) NOPASSWD:ALL/" /etc/sudoers
@@ -168,7 +164,7 @@ RUN cd $SGE_ROOT && ./inst_sge -m -x -s -auto $HOME/sge_auto_install.conf \
 && /opt/sge/bin/lx-amd64/qconf -Aq $HOME/sge_queue.conf \
 && ln -s /opt/sge/lib/lx-amd64/libdrmaa.so /usr/local/tomcat/native-jni-lib/libdrmaa.so \
 && ln -s /opt/sge/lib/lx-amd64/libdrmaa.so.1.0 /usr/local/tomcat/native-jni-lib/libdrmaa.so.1.0 \
-&& echo "-w n" >> /opt/sge/default/common/sge_request \
+&& echo "-w n" >> /opt/sge/default/common/sge_request
 
 # runit
 RUN ln -s /etc/sv/opal-tomcat /etc/service/opal-tomcat
