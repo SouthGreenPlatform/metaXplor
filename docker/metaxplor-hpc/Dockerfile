@@ -177,8 +177,10 @@ RUN mkdir -p /gs7k1/projects/metaXplor
 RUN chmod -R 777 /gs7k1
 
 # BoSSA (R-package) install
-RUN R -e "install.packages(\"BoSSA\")"
-RUN rm -rf R
+RUN R -e "install.packages(\"remotes\")" \
+&& R -e "remotes::install_version(\"phangorn\", version=\"2.5.5\")" \
+&& R -e "install.packages(\"BoSSA\")" \
+&& rm -rf R
 
 # cleanup
 RUN apt-get purge -y g++ gfortran libblas-dev liblapack-dev make less gcc wget
