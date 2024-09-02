@@ -7,7 +7,7 @@
                         http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-5.6.xsd
                         http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 
-    <context:component-scan base-package="fr.cirad.metaxplor.importing,fr.cirad.tools">
+    <context:component-scan base-package="fr.cirad.security.service,fr.cirad.metaxplor.importing,fr.cirad.tools">
         <context:exclude-filter type="regex" expression="^fr.cirad.tools.GlobalExceptionHandler$"/>
     </context:component-scan>
     

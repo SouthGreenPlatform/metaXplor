@@ -34,6 +34,7 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.ResourceBundle;
 
 import javax.servlet.ServletContext;
 import javax.xml.parsers.DocumentBuilder;
@@ -57,6 +58,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -68,11 +70,11 @@ import com.mongodb.client.MongoCursor;
 import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
 
+import fr.cirad.manager.AbstractProcess;
 import fr.cirad.manager.IModuleManager;
 import fr.cirad.manager.dump.DumpMetadata;
 import fr.cirad.manager.dump.DumpProcess;
 import fr.cirad.manager.dump.DumpStatus;
-import fr.cirad.manager.dump.IBackgroundProcess;
 import fr.cirad.metaxplor.importing.MtxImport;
 import fr.cirad.metaxplor.model.AssignedSequence;
 import fr.cirad.metaxplor.model.Blast;
@@ -87,6 +89,7 @@ import fr.cirad.security.base.IRoleDefinition;
 import fr.cirad.tools.mongo.DBConstant;
 import fr.cirad.tools.mongo.MongoTemplateManager;
 import fr.cirad.tools.opal.OpalServiceLauncher;
+import fr.cirad.web.controller.security.UserPermissionController;
 
 /**
  * @author sempere
@@ -133,22 +136,22 @@ public class MetaXplorModuleManager implements IModuleManager {
             if (fIncludeEntityDescriptions)
             	q.fields().include(MetagenomicsProject.FIELDNAME_DESCRIPTION);
 
-            for (String sModule : modules != null ? modules : MongoTemplateManager.getAvailableModules())
-                if (fTrueIfPublicFalseIfPrivateNullIfAny == null || (MongoTemplateManager.isModulePublic(sModule) == fTrueIfPublicFalseIfPrivateNullIfAny)) {
-                    Map<Comparable, String[]> moduleEntities = entitiesByModule.get(sModule);
-                    if (moduleEntities == null) {
-                        moduleEntities = new LinkedHashMap<>();
-                        entitiesByModule.put(sModule, moduleEntities);
-                    }
-
-                    for (MetagenomicsProject project : MongoTemplateManager.get(sModule).find(q, MetagenomicsProject.class)) {
-                    	String[] projectInfo = new String[fIncludeEntityDescriptions ? 2 : 1];
-                    	projectInfo[0] = project.getName();
-                    	if (fIncludeEntityDescriptions)
-                    		projectInfo[1] = project.getDescription();
-                        moduleEntities.put(project.getId(), projectInfo);
-                    }
+            for (String sModule : modules != null ? modules : MongoTemplateManager.getAvailableModules()) {
+                Map<Comparable, String[]> moduleEntities = entitiesByModule.get(sModule);
+                if (moduleEntities == null) {
+                    moduleEntities = new LinkedHashMap<>();
+                    entitiesByModule.put(sModule, moduleEntities);
                 }
+
+                for (MetagenomicsProject project : MongoTemplateManager.get(sModule).find(q, MetagenomicsProject.class))
+                	if (fTrueIfPublicFalseIfPrivateNullIfAny == null || project.isPublicProject() == fTrueIfPublicFalseIfPrivateNullIfAny) { 
+	                	String[] projectInfo = new String[fIncludeEntityDescriptions ? 2 : 1];
+	                	projectInfo[0] = project.getName();
+	                	if (fIncludeEntityDescriptions)
+	                		projectInfo[1] = project.getDescription();
+	                    moduleEntities.put(project.getId(), projectInfo);
+	                }
+            }
         }
         else
             throw new Exception("Not managing entities of type " + entityType);
@@ -615,7 +618,7 @@ public class MetaXplorModuleManager implements IModuleManager {
     }
 
     @Override
-    public IBackgroundProcess startDump(String sModule, String dumpName, String sDescription) {
+    public AbstractProcess startDump(String sModule, String dumpName, String sDescription) {
         String sHost = this.getModuleHost(sModule);
         String credentials = this.getHostCredentials(sHost);
         String databaseName = MongoTemplateManager.getDatabaseName(sModule);
@@ -640,7 +643,7 @@ public class MetaXplorModuleManager implements IModuleManager {
     }
 
     @Override
-    public IBackgroundProcess startRestore(String sModule, String dumpId, boolean drop) {
+    public AbstractProcess startRestore(String sModule, String dumpId, boolean drop) {
         String sHost = this.getModuleHost(sModule);
         String credentials = this.getHostCredentials(sHost);
         String dumpFile = this.getDumpPath(sModule) + File.separator + dumpId + ".gz";
@@ -765,11 +768,6 @@ public class MetaXplorModuleManager implements IModuleManager {
 	}
 	
 	@Override
-	public boolean doesEntityTypeSupportDescription(String sModule, String sEntityType) {
-		return true;
-	}
-	
-	@Override
 	public boolean setManagedEntityDescription(String sModule, String sEntityType, String entityId, String desc) throws Exception {
 		if (ENTITY_PROJECT.equals(sEntityType)) {
 			final int projectIdToModify = Integer.parseInt(entityId);
@@ -787,5 +785,35 @@ public class MetaXplorModuleManager implements IModuleManager {
 
 		throw new Exception("Not managing entities of type " + sEntityType);
 	}
-	
+
+	@Override
+	public String getEntityAdditionURL(String sEntityType) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public String getEntityEditionURL(String sEntityType) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public boolean isInlineDescriptionUpdateSupportedForEntity(String sEntityType) {
+		if (ENTITY_PROJECT.equals(sEntityType))
+			return true;
+		return false;
+	}
+
+	@Override
+	public Map<String, AbstractProcess> getImportProcesses() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Collection<? extends String> getLevel1Roles(String level1Type, ResourceBundle bundle) {
+		return Arrays.asList(StringUtils.tokenizeToStringArray(bundle.getString(UserPermissionController.LEVEL1_ROLES + "_" + level1Type), ","));
+	}
+
 }

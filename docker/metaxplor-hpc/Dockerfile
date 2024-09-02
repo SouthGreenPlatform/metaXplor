@@ -1,3 +1,4 @@
+#-------------------------------
 # metaXplor-hpc container
 #-------------------------------
 # Apache Tomcat | 8.5.41
@@ -35,7 +36,7 @@ EXPOSE 8080
 
 RUN rm -rf /usr/local/tomcat/webapps/*
 
-# opal2 webapp
+# opal2 webapp 
 COPY opal2 /usr/local/tomcat/webapps/opal2
 
 COPY mtx/configs /usr/local/bioinfo/opal/configs
