@@ -35,6 +35,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.ResourceBundle;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.servlet.ServletContext;
 import javax.xml.parsers.DocumentBuilder;
@@ -53,6 +54,8 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
+import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -96,6 +99,7 @@ import fr.cirad.web.controller.security.UserPermissionController;
  *
  */
 @Component("moduleManager")
+@EnableScheduling
 public class MetaXplorModuleManager implements IModuleManager {
 
 	static public final String ENTITY_PROJECT = "project";
@@ -111,6 +115,8 @@ public class MetaXplorModuleManager implements IModuleManager {
     private static final String defaultDumpFolder = DumpProcess.dumpManagementPath + "/dumps";
 
     private String actionRequiredToEnableDumps = null;
+    
+    private Map<String, AbstractProcess> importProcesses = new ConcurrentHashMap<>();
     
     @Autowired
     private ReloadableInMemoryDaoImpl userDao;
@@ -805,15 +811,30 @@ public class MetaXplorModuleManager implements IModuleManager {
 		return false;
 	}
 
-	@Override
-	public Map<String, AbstractProcess> getImportProcesses() {
-		// TODO Auto-generated method stub
-		return null;
+	public void registerImportProcess(ImportProcess process) {
+		importProcesses.put(process.getProcessID(), process);
+	}
+
+    @Override
+    public Map<String, AbstractProcess> getImportProcesses() {
+        return importProcesses;
+    }
+    
+	/**
+	 * Clean old finished processes regularly
+	 */
+	@Scheduled(fixedRate = 86400000)
+	public void cleanupFinishedProcesses() {
+		for (String processID : importProcesses.keySet()) {
+			AbstractProcess process = importProcesses.get(processID);
+			if (process.getStatus().isFinal()) {
+				importProcesses.remove(processID);
+			}
+		}
 	}
 
 	@Override
 	public Collection<? extends String> getLevel1Roles(String level1Type, ResourceBundle bundle) {
 		return Arrays.asList(StringUtils.tokenizeToStringArray(bundle.getString(UserPermissionController.LEVEL1_ROLES + "_" + level1Type), ","));
 	}
-
 }

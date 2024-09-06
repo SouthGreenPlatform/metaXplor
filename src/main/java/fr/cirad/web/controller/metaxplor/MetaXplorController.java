@@ -128,6 +128,7 @@ import fr.cirad.security.base.IRoleDefinition;
 import fr.cirad.tools.AppConfig;
 import fr.cirad.tools.Constant;
 import fr.cirad.tools.Helper;
+import fr.cirad.tools.ImportProcess;
 import fr.cirad.tools.MetaXplorModuleManager;
 import fr.cirad.tools.ProgressIndicator;
 import fr.cirad.tools.mongo.DBConstant;
@@ -513,6 +514,9 @@ public class MetaXplorController implements ApplicationContextAware {
 	        
 	        if (code.trim().isEmpty())
 	        	throw new Exception("No project code provided!");
+	        
+	        ImportProcess process = new ImportProcess(progress, module);
+	        ((MetaXplorModuleManager) moduleManager).registerImportProcess(process);
 
 	        Map<String, String> result = mtxImport.doImport(
 	        		new OpalServiceLauncher(request),
